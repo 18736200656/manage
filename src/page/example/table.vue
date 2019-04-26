@@ -32,11 +32,14 @@
             </v-pageToolbar>
             <!-- 表格体 -->
             <v-pageTable pagination paginationAlign="center">
-                <el-table v-loading="tableData.loading" :data="tableData.body" border style="width: 100%" :default-sort="{prop: 'date', order: 'descending'}">
+                <el-table v-loading="tableData.loading" :data="tableData.body" style="width: 100%" :default-sort="{prop: 'date', order: 'descending'}"
+ @selection-change="handleSelectionChange" :header-cell-style="{background:'red'}">
+                    <el-table-column type="selection" width="50" align="center"></el-table-column>
+
                     <el-table-column type="index" label="序号" width="64" align="center"></el-table-column>
                     <el-table-column v-for="(item,index) in tableData.head" :prop="item.key" :label="item.name" sortable :key="index"></el-table-column>
                     <el-table-column label="操作">
-                        <template scope="scope">
+                        <template slot-scope="scope">
                             <el-button v-if="scope.row.operation.indexOf('edit') >= 0" type="text" size="small">查看</el-button>
                             <el-button v-if="scope.row.operation.indexOf('delete') >= 0" type="text" size="small">删除</el-button>
                         </template>

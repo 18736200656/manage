@@ -2,7 +2,8 @@
     <div class="wrapper">
         <template v-if="layout =='left'">
             <v-header v-once>
-                <p slot="logo">VueJS模板系统</p>
+                <!--<i slot="logo">VueJS模板系统</p>-->
+                <img slot="logo" src="../../assets/logo.png" style="height:40px;margin-top:10px;"/>
             </v-header>
             <v-sidenav :layout="layout"></v-sidenav>
         </template>

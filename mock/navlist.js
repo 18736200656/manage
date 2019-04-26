@@ -1,10 +1,12 @@
 var data = [
     {
+        icon:'el-icon-menu',
         path: '/home',
         name: '首页'
     },
     {
-        name: '系统组件',
+        icon:'el-icon-menu',
+        name: '个人信息',
         child: [
             {
                 name: '介绍',

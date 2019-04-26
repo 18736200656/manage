@@ -2,82 +2,95 @@
     <div class="login-page">
         <div class="login-area">
             <div class="logo">
-                <img src="~sysStatic/images/logo.png" alt="">
+                <img src="../../assets/logo.png" alt="">
             </div>
             <div class="form-group">
                 <el-form :model="loginForm" :rules="loginRules" ref="loginForm" label-position="left" label-width="0px">
-                    <el-form-item prop="name">
-                        <el-input v-model="loginForm.name" type="text" placeholder="账户名"></el-input>
+                    <el-form-item prop="phone">
+                        <el-input v-model="loginForm.phone" type="text" placeholder="请输入手机号" maxlength="11"></el-input>
+                    </el-form-item>
+                     <el-form-item prop="captcha" >
+                        <el-input v-model="loginForm.captcha" type="text" placeholder="输入图像验证码" style="width:150px;"></el-input>
+                        <div @click="refreshCode"><s-identify :identifyCode="identifyCode"></s-identify> </div>
                     </el-form-item>
                     <el-form-item prop="password">
                         <el-input v-model="loginForm.password" type="password" placeholder="密码"></el-input>
                     </el-form-item>
-                    <el-form-item prop="captcha" v-if="captcha" class="captcha">
-                        <el-input v-model="loginForm.captcha" type="text" placeholder="验证码"></el-input>
-                        <img src="" alt="">
-                    </el-form-item>
-                    <p class="textR">忘记密码？</p>
-                    <a class="btn-login" type="primary" @click="submitForm()">登录</a>
+                    <el-button class="btn-login" type="primary" @click="submitForm()">登录</el-button>
                 </el-form>
                 <div v-if="sys_error" class="err-msg">{{sys_error}}</div>
-            </div>
-            <div class="lang-toggle">
-                <span :class="{cur: lang=='zh'}" @click="changeLang('zh')">中</span> | 
-                <span :class="{cur: lang=='en'}" @click="changeLang('en')">En</span>
-            </div>
-            <div class="tip">
-                <p>当前登录结果随机。验证码随便填</p>
             </div>
         </div>
     </div>
 </template>
 
 <script>
-    import { mapState, mapMutations, mapActions } from 'vuex'
+    import SIdentify from '../../components/identify'
     export default {
+        name:'login',
         data() {
             return {
+                identifyCodes: "1234567890abcdefghijklmnopqrstuvwxyz",
+                identifyCode: "1234",
                 loginForm: {
-                    name: '',
+                    phone: '',
                     password: '',
                     captcha: ''
                 },
                 loginRules: {
-                    name: [
-                        {required: true, message: '请输入用户名', trigger: 'blur'}
+                    phone: [
+                        {required: true, message: '请输入手机号', trigger: 'blur'},
+                        {max: 11, message: '请输入11位数字', trigger: 'blur'},
+                        {validator: this.ValidatePhone, trigger: 'blur'}
                     ],
                     password :[
-                        {required: true, message: '请输入密码', trigger: 'blur'}
+                        {required: true, message: '请输入密码', trigger: 'blur'},
+                        {min:6,max: 20, message: '请输入6-20位字符', trigger: 'blur'},
+                        {validator: this.ValidatePassword, trigger: 'blur'}
                     ],
                     captcha: [
-                        {required: false, message: '请输入验证码', trigger: 'blur'}
+                        {required: true, message: '请输入验证码', trigger: 'blur'},
+                        {max: 4, message: '请输入4位数字', trigger: 'blur'},
+                        {validator: this.ValidateCaptcha, trigger: 'blur'},
+                       
                     ]
                 },
                 sys_error: '',
                 validate: false
             }
         },
-        computed: {
-            ...mapState({
-                lang: state => state.lang
-            }),
-            captcha(){
-                if(this.validate) this.loginRules.captcha[0].required = true
-                return this.validate
-            }
+        mounted(){
+            this.identifyCode = "";
+            this.makeCode(this.identifyCodes, 4);
+            console.log(this.identifyCodes.length)
         },
         methods: {
-            ...mapMutations({
-                toggleLang: 'changeLang'
-            }),
-            ...mapActions({
-                loginByEmail: 'user/loginByEmail'
-            }),
+            ValidatePhone(rule, value, callback){
+                var regExp = /^(13[0-9]|14[579]|15[0-3,5-9]|16[6]|17[0135678]|18[0-9]|19[89])\\d{8}$/;
+                if(!regExp.test(value)){
+                    callback(new Error('请输入正确的手机号码'))
+                }
+            },
+            ValidateCaptcha(rule, value, callback){
+                if(value!=this.identifyCode){
+                    callback(new Error('验证码输入错误'))
+                }
+            },
+            ValidatePassword (rule, value, callback) {
+                if (value.match(/^\d{6,}$/)) {
+                callback(new Error('不能使用纯数字的密码'))
+                } else if (/^([a-z0-9\.\@\!\#\$\%\^\&\*\(\)\-\+]){6,20}$/i == false) {
+                callback(new Error('请输入6-20位数字、字母和特殊字符（仅限!@#$%^&*()-+）'))
+                } else {
+                callback()
+                }
+
+            },
             submitForm(){
                 this.$refs.loginForm.validate((valid) => {
                     if (valid) {
                         let data = {
-                            name: this.loginForm.name,
+                            phone: this.loginForm.phone,
                             password: this.loginForm.password
                         }
                         if(this.validate) data.validate = this.loginForm.validate
@@ -97,11 +110,27 @@
                     }
                 });
             },
-            changeLang(val){
-                if(val == this.lang) return
-                this.toggleLang(val)
+            randomNum(min, max) {
+                return Math.floor(Math.random() * (max - min) + min);
+            },
+            refreshCode() {
+                console.log(1)
+                this.identifyCode = "";
+                this.makeCode(this.identifyCodes, 4);
+            },
+            makeCode(o, l) {
+                for (let i = 0; i < l; i++) {
+                    this.identifyCode += this.identifyCodes[
+                    this.randomNum(0, this.identifyCodes.length)
+                    ];
+                }
+                console.log(this.identifyCode);
             }
+        },
+        components:{
+            SIdentify
         }
+
     }
 </script>
 
@@ -117,7 +146,7 @@
             margin: 0 auto;
             .logo {
                 width: 100%;
-                height: 200px;
+                height: 100px;
                 text-align: center;
                     img {
                     width: 160px;

@@ -57,6 +57,10 @@ const routes = [{
         // 重定向
         redirect: '/home'
     },
+    {   
+        path:'/a',
+        component:r=>require.ensure([],()=>r(require('../components/aside')))
+    },
     {
         path: '/login',
         component: r => require.ensure([], () => r(require('../page/login/login')), 'login')
